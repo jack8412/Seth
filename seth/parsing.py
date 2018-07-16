@@ -439,7 +439,7 @@ def print_var(k, vars):
     elif k == "creds":
         result = vars[k]
         if args.out_file:
-            open(args.out_file, "a").write('%s:%d \ %s\n' % (args.target_host, args.target_port, result.decode('utf8')))
+            open(args.out_file, "a").write('%s:%d %s\n' % (args.target_host, args.target_port, result.decode('utf8')))
     #  elif k == "server_challenge":
     #      result = b"Server Challenge: %s" % hexlify(vars[k])
     elif k == "keyboard_layout":
