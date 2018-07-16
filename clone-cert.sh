@@ -7,7 +7,8 @@ set -e
 
 HOST="$1"
 SERVER="$(printf "%s" "$HOST" | cut -f1 -d:)"
-DIR="/tmp/"
+DIR="/tmp/certs/"
+mkdir $DIR 2> /dev/null
 KEYLENGTH=1024 # 1024 is faster, but less secure than 4096
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 

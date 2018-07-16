@@ -19,13 +19,19 @@ parser.add_argument('-g', '--downgrade', dest='downgrade', type=int,
 parser.add_argument('-j', '--inject', dest='inject', type=str,
     required=False, help="command to execute via key press event injection")
 parser.add_argument('-c', '--certfile', dest='certfile', type=str,
-    required=True, help="path to the certificate file")
+    required=False, help="path to the certificate file")
 parser.add_argument('-k', '--keyfile', dest='keyfile', type=str,
-    required=True, help="path to the key file")
+    required=False, help="path to the key file")
 parser.add_argument('target_host', type=str,
     help="target host of the RDP service")
 parser.add_argument('target_port', type=int, default=3389, nargs='?',
     help="TCP port of the target RDP service (default 3389)")
+parser.add_argument('-o', '--out-file', dest='out_file', type=str, 
+    required=False,
+    help="out file path")
+parser.add_argument('--check-port', dest='check_port', type=int, 
+    required=False,
+    help="check port")
 
 args = parser.parse_args()
 

