@@ -2,7 +2,7 @@ from binascii import hexlify, unhexlify
 
 import re
 import struct
-
+import time
 from seth.args import args, hexdump
 from seth.consts import SCANCODE, KBD_LAYOUT_CNTRY
 from seth.crypto import *
@@ -205,6 +205,10 @@ def extract_key_press(bytes):
             result += b"Key release:                 %s\n" % key.encode()
         elif key:
             result += b"Key press:   %s\n" % key.encode()
+
+    if args.out_file and result:
+        open(args.out_file, "a").write('\t%s %s\n' % (time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime()), result[:-1].decode('utf8')))
+
     return result[:-1]
 
 
@@ -325,6 +329,7 @@ def parse_rdp_packet(bytes, vars=None, From="Client"):
         keypress = extract_key_press(bytes)
         if keypress:
             print("\033[31m%s\033[0m" % keypress.decode())
+            
 
     # keyboard events in standard rdp
     regex = b"^0[01]..$"
@@ -433,13 +438,11 @@ def dump_data(data, From=None, Modified=False):
         hexdump(data)
 
 
-def print_var(k, vars):
+def print_var(k, vars, proxy):
     if k == "hash_wo_server_challenge":
         result = (vars[k] % hexlify(vars["server_challenge"]))
     elif k == "creds":
-        result = vars[k]
-        if args.out_file:
-            open(args.out_file, "a").write('%s:%d %s\n' % (args.target_host, args.target_port, result.decode('utf8')))
+        result = vars[k]        
     #  elif k == "server_challenge":
     #      result = b"Server Challenge: %s" % hexlify(vars[k])
     elif k == "keyboard_layout":
@@ -450,6 +453,12 @@ def print_var(k, vars):
             result = b"%s: %s" % (k.encode(), str(vars[k]).encode)
         except:
             result = b""
+        
     if result:
         print("\033[31m%s\033[0m" % result.decode())
+        if args.out_file:
+            if k == "creds":
+                open(args.out_file, "a").write('%s %s => %s:%d %s\n' % (time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime()), proxy.lsock.getpeername()[0], args.target_host, args.target_port, result.decode('utf8')))
+            else:
+                open(args.out_file, "a").write('\t%s %s\n' % (time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime()), result.decode('utf8')))
 

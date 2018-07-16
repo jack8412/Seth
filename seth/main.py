@@ -192,7 +192,7 @@ class RDPProxy(threading.Thread):
         for k, v in vars.items():
             if k not in self.vars:
                 self.vars[k] = v
-                print_var(k, self.vars)
+                print_var(k, self.vars, self)
 
 
     def handle_ssl_error(self, e):
