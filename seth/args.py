@@ -32,6 +32,9 @@ parser.add_argument('-o', '--out-file', dest='out_file', type=str,
 parser.add_argument('--check-port', dest='check_port', type=int, 
     required=False,
     help="check port")
+parser.add_argument('-s', '--stop', dest='stop', action="store_true",
+    default=False,
+    help="stop attack when get creds")
 
 args = parser.parse_args()
 
